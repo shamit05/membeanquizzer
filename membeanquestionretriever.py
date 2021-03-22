@@ -198,15 +198,3 @@ with open(filename, "w", newline="") as csvfile:
             print("Writing " + str(actualWrite) + "/" + str(actualWordList))
             z = actualWrite - 1
             initialWriter.writerow([fullQuizableWordList[i], quizQuestion[z], answerOneList[z], answerTwoList[z], answerThreeList[z], correctAnswerList[z], wordDefinition[z], 0, synonyms[z], 300])
-# #Saving functionality
-#
-#
-#
-# data = [[]]
-# for i in fullQuizableWordList:
-#     # ["Word", "Quiz Question", "Answer A", "Answer B", "Answer C", "Correct Answer", "Definition", "Rank"]
-#     data.append()
-#
-# for i in range(len(data)):
-#
-#
