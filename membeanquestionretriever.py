@@ -10,6 +10,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium import webdriver
 import random
+import pandas as pd
 
 #fullcsvlistvariables
 #saving done at end
@@ -22,19 +23,29 @@ wordDefinition = []
 quizQuestion = []
 synonyms = []
 #initial chrome setup and username password inputs
+chromedriverautodownload()
 chromedriver = "chromedriver.exe"
-driver = webdriver.Chrome(chromedriver)
-username = input("Username: ")
-password = input("Password (Only for authentication for membean): ")
+options = webdriver.ChromeOptions()
+
+options.add_experimental_option("excludeSwitches", ["enable-automation"])
+options.add_experimental_option('useAutomationExtension', False)
+options.add_argument("--disable-blink-features=AutomationControlled")
+
+driver = webdriver.Chrome(chromedriver, options=options)
+
+username = "shamit.surana@franklinsabers.org" #input("Username: ")
+password = "Sabers2083" #input("Password (Only for authentication for membean): ")
 
 filename = "quizzablewordstester.csv"
 header = ("Word", "Quiz Question", "Answer A", "Answer B", "Answer C", "Correct Answer", "Definition", "Rank", "Synonyms", "Weights")
 
 reset = input("Do you want to reset list completely? (Only reset if errors are thrown) (y/[n]): ")
 
-with open(filename, 'x') as file: #checks if file exists, if not it creates one
-    pass
-
+try:
+    with open(filename, 'x') as file: #checks if file exists, if not it creates one
+        print("Creating File")
+except:
+    print("File Exists")
 if reset == "y":
     f = open(filename, 'r+')
     f.truncate(0) # need '0' when using r+
@@ -43,6 +54,7 @@ if reset == "y":
 
 #login functionality
 driver.get('https://membean.com/login')
+print("If Membean doesn't load in 5 seconds due to cloudfare protection open up another tab and go to membean.com/login and wait for it to load")
 usernameBox = WebDriverWait(driver, 30).until(EC.visibility_of_element_located((By.ID, 'user_username')))
 passBox = driver.find_element_by_id("user_password")
 signInBox = driver.find_element_by_xpath("//*[@id='login']/div[5]/button")
@@ -77,7 +89,7 @@ with open(filename, 'r') as file:
             wordListFilled.append(row[0])
         i = i + 1
 
-with open(filename, "w", newline="") as csvfile:
+with open(filename, "a", newline='') as csvfile:
     initialWriter = csv.writer(csvfile)
     if reset == "y":
         initialWriter.writerow(header)
@@ -85,11 +97,31 @@ with open(filename, "w", newline="") as csvfile:
     actualWordList = 0
     actualWrite = 0
 
+    actualRemove = 0
+    actualRemoveList = 0
     for i in range(len(fullQuizableWordList)):
         if fullQuizableWordList[i] not in wordListFilled:
             actualWordList += 1
-    for i in range(len(fullQuizableWordList)):
-        if fullQuizableWordList[i] not in wordListFilled:
+
+    for i in range(len(wordListFilled)):
+        if wordListFilled[i] not in fullQuizableWordList:
+            actualRemoveList += 1
+
+    removelist = []
+    for i in range(len(wordListFilled)):
+        if wordListFilled[i] not in fullQuizableWordList:
+            actualRemove += 1
+            removelist.append(i+1)
+            print("Removing " +  wordListFilled[i] + " ("+ str(actualRemove) + "/" + str(actualRemoveList) + ")")
+
+    df = pd.read_csv(filename, skiprows=removelist)
+    # And output
+    df.to_csv(filename, index=False)
+
+for i in range(len(fullQuizableWordList)):
+    if fullQuizableWordList[i] not in wordListFilled:
+        with open(filename, "a", newline='') as csvfile:
+            initialWriter = csv.writer(csvfile)
             actualWrite += 1
             #retrieves specific word
             word = fullQuizableWordList[i]
@@ -168,21 +200,13 @@ with open(filename, "w", newline="") as csvfile:
             synonym = ""
             temp = 0
             try:
-                for element in WebDriverWait(driver, 6).until(EC.visibility_of_all_elements_located((By.CLASS_NAME, "css-1kg1yv8"))):
+                for element in WebDriverWait(driver, 10).until(lambda driver: driver.find_elements(By.CLASS_NAME, "css-1kg1yv8") or driver.find_elements(By.CLASS_NAME, "css-1gyuw4i") or driver.find_elements(By.CLASS_NAME, "css-1n6g4vv")):
                     if temp < 3:
                         element_contents = element.get_attribute('innerHTML')
                         synonym += ", " + element_contents
                     temp += 1
             except:
-                try:
-                    for element in WebDriverWait(driver, 15).until(
-                            EC.visibility_of_all_elements_located((By.CLASS_NAME, "css-1gyuw4i"))):
-                        if temp < 3:
-                            element_contents = element.get_attribute('innerHTML')
-                            synonym += ", " + element_contents
-                        temp += 1
-                except:
-                    synonym = "none"
+                synonym = "none"
             synonym = synonym.strip(", ")
             synonym = synonym.replace("<!-- --> ","")
             synonym = synonym.replace("<!-- -->", "")
@@ -195,6 +219,6 @@ with open(filename, "w", newline="") as csvfile:
             # print(correctAnswerList)
             # print(wordDefinition)
             # print(quizQuestion)
-            print("Writing " + str(actualWrite) + "/" + str(actualWordList))
             z = actualWrite - 1
             initialWriter.writerow([fullQuizableWordList[i], quizQuestion[z], answerOneList[z], answerTwoList[z], answerThreeList[z], correctAnswerList[z], wordDefinition[z], 0, synonyms[z], 300])
+            print("Writing " + fullQuizableWordList[i] + " (" + str(actualWrite) + "/" + str(actualWordList) + ")")

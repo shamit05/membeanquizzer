@@ -2,6 +2,11 @@ import csv
 import random
 import time
 import os
+from chromedriverauto import chromedriverautodownload
+
+# Ensures chromedriver is donwloaded
+# chromedriverautodownload()
+
 # System call
 os.system("")
 counter = 0
@@ -72,7 +77,7 @@ while True:
         w = csv.writer(re)
         lines = list(r)
         for p in range(len(wordRecited)):
-            weight = int(lines[wordRecited[p] + 1][9]) + (p - 4) * 200
+            weight = int(lines[wordRecited[p] + 1][9]) + (p - 3) * 200
             if weight <= 0:
                 weight = 1
             if p > len(wordRecited)-2 and (len(fullQuizableWordList) - rank.count(2)) > 2:
@@ -132,6 +137,13 @@ while True:
                         if z != 0:
                             rank.append(lines[z][7])
                             problemWeight.append(int(lines[z][9]))
+            elif answer.lower() == "progress" or answer.lower() == "p":
+                maxnumbers = len(rank) * 2
+                numberscompleted = 0
+                for i in rank:
+                    numberscompleted += int(i)
+                print(numberscompleted, "/", maxnumbers)
+                print(str(round(numberscompleted/maxnumbers * 100, 3)) + "%")
             elif answer == "a" or answer == "b" or answer == "c":
                 print(color.RED + "\n" + "Incorrect. Please try again."+ "\n" + color.END)
                 with open(filename, 'r+', newline='') as re:  # Here your csv file
@@ -167,16 +179,16 @@ while True:
             if len(wordsplit) == 1:
                 capitalize = True
                 wordsplit = wordDefinition[randomQuestion].split(word.capitalize())
-            if len(word) > 6:
+            if len(word) > 15: # change to change up position of shown letters
                 type = 0
                 blanks = int(len(word)) - 4
                 fillin = word[:2]
-                fillin1 = word[-2:]
+                fillin1 = word[-0:]
             else:
                 type = 1
-                blanks = int(len(word)) - 2
+                blanks = int(len(word)) - 1
                 fillin = word[:1]
-                fillin1 = word[-1:]
+                fillin1 = ""
             actualBlanks = ""
             for i in range(blanks):
                 actualBlanks += "-"
@@ -260,6 +272,13 @@ while True:
                                 problemWeight.append(int(lines[z][9]))
                 else:
                     print(color.PURPLE + "CANCELED OVERRIDE" + "\n" + color.END)
+            elif answer.lower() == "progress" or answer.lower() == "p":
+                maxnumbers = len(rank) * 2
+                numberscompleted = 0
+                for i in rank:
+                    numberscompleted += i
+                print(numberscompleted, "/", maxnumbers)
+                print(str(numberscompleted/maxnumbers * 100) + "%")
             else:
                 print(color.RED + "\n" + "Incorrect. Please try again." + "\n" + color.END)
                 with open(filename, 'r+', newline='') as re:  # Here your csv file
